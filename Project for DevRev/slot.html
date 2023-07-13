@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
+  
+  <title>Searching</title>
+  
+  <style>
+
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <form id="searchForm">
+      <h4 style="text-align: center; color: rgb(47, 167, 204)"><b>Apply for a Vaccination Slot</b></h4>
+     
+      <hr>
+      <div class="form-group">
+        <label for="searchQuery">Search Query</label>
+        <input type="text" class="form-control" id="searchQuery" placeholder="Enter The Center Name" required>
+      </div>
+      <button type="submit" class="btn btn-primary form-control">Search</button>
+    </form>
+    
+    <div class="container mt-3">
+      <p style="text-align: center;">Search Results:</p>
+      <table id="searchResults" class="table">
+        <thead>
+          <tr>
+            <th>Center Name</th>
+            <th>Working Hours</th>
+            <th>Slots Available</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js";
+    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      // Your Firebase configuration
+      // ...
+      apiKey: "AIzaSyA_a7AiaOF8Fdy_1qDckdsWJFp9UiqRol0",
+                   authDomain: "covid-f1ac9.firebaseapp.com",
+                   databaseURL: "https://covid-f1ac9-default-rtdb.firebaseio.com",
+                   projectId: "covid-f1ac9",
+                   storageBucket: "covid-f1ac9.appspot.com",
+                   messagingSenderId: "480494790086",
+                   appId: "1:480494790086:web:bdba315915c2436de8fec7",
+                   measurementId: "G-MMH7JNS3ZD"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase();
+
+    // Search Vaccination Centers
+    const searchCenters = (searchQuery) => {
+      const queryRef = ref(database, 'center');
+      const searchResults = [];
+
+      return new Promise((resolve, reject) => {
+        onValue(queryRef, (snapshot) => {
+          const centers = snapshot.val();
+
+          for (const key in centers) {
+            const center = centers[key];
+            if (center.Center_name.toLowerCase().includes(searchQuery.toLowerCase())) {
+              center.key = key; // Store the center key
+              center.slotsAvailable = 10; // Set default slots available to 10
+              searchResults.push(center);
+            }
+          }
+
+          resolve(searchResults);
+        }, (error) => {
+          reject(error);
+        });
+      });
+    };
+
+    // Apply for a Vaccination Slot
+    const applyForSlot = (centerId, numSlots) => {
+      const slotsRef = ref(database, `center/${centerId}/slots`);
+
+      return new Promise((resolve, reject) => {
+        runTransaction(slotsRef, (currentSlots) => {
+          if (!currentSlots) {
+            currentSlots = 10;
+          }
+
+          const availableSlots = currentSlots;
+          if (availableSlots >= numSlots) {
+            currentSlots -= numSlots;
+            return currentSlots;
+          } else {
+            throw new Error("No available slots.");
+          }
+        })
+        .then(() => {
+          resolve("Slot booked successfully.");
+        })
+        .catch((error) => {
+          reject(error);
+        });
+      });
+    };
+
+    // Update Search Results Table
+    const updateSearchResultsTable = (results) => {
+      const searchResultsContainer = document.querySelector("#searchResults tbody");
+      searchResultsContainer.innerHTML = "";
+
+      if (results.length > 0) {
+        results.forEach((center) => {
+          const row = document.createElement("tr");
+          row.setAttribute("data-key", center.key); // Store the center key as a data attribute
+          const nameCell = document.createElement("td");
+          const hoursCell = document.createElement("td");
+          const slotsCell = document.createElement("td");
+          const applyCell = document.createElement("td");
+          const applyButton = document.createElement("button");
+          applyButton.classList.add("btn", "btn-primary", "apply-button");
+          applyButton.textContent = "Apply";
+          applyButton.addEventListener("click", () => {
+            if (center.slotsAvailable > 0) {
+              applyForSlot(center.key, 1)
+                .then((message) => {
+                  console.log(message);
+                  // Update the slots count and show success message
+                  center.slotsAvailable--;
+                  slotsCell.textContent = center.slotsAvailable;
+                  alert("You have successfully applied for a vaccination slot at " + center.Center_name);
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            } else {
+              alert("No slots available at " + center.Center_name);
+            }
+          });
+
+          nameCell.textContent = center.Center_name;
+          hoursCell.textContent = center.Working_Hours;
+          slotsCell.textContent = center.slotsAvailable;
+          applyCell.appendChild(applyButton);
+          row.appendChild(nameCell);
+          row.appendChild(hoursCell);
+          row.appendChild(slotsCell);
+          row.appendChild(applyCell);
+
+          searchResultsContainer.appendChild(row);
+        });
+      } else {
+        const row = document.createElement("tr");
+        const noResultsCell = document.createElement("td");
+        noResultsCell.textContent = "No vaccination centers found.";
+        noResultsCell.setAttribute("colspan", "4");
+        row.appendChild(noResultsCell);
+        searchResultsContainer.appendChild(row);
+      }
+    };
+
+    // Search Centers Form Submission
+    document.getElementById("searchForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const searchQuery = document.getElementById("searchQuery").value.trim();
+
+      searchCenters(searchQuery)
+        .then((results) => {
+          updateSearchResultsTable(results);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+  </script>
+</body>
+</html>
+
+

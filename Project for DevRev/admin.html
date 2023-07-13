@@ -1,0 +1,83 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin-Page</title>
+        <link rel="stylesheet" type="text/css" href="style1.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" ></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/lib..."></script>
+    </head><body>
+<section>
+    <div class="col-lg-4 col-md-6 col-12">
+        <form name="registration_form" id="registration_form" method="post" action="#" enctype="multipart/form-data" >
+            <div class="mb-3 text-center">
+                <h3>Admin-Login</h3>
+                
+            </div>
+ 
+            <div class="mb-3">
+                <label for="email">Email</label>
+                <input type="text" name="login_email" id="login_email" class="form-control" placeholder="Enter your email">
+
+            </div>
+            <div class="mb-3">
+                <label for="password">Password</label>
+                <input type="password" name="login_password" id="login_password" class="form-control"  placeholder="Enter your password"><br>
+
+            </div><div>
+            <div>
+                <button type="button" id="login" name="login" class="btn btn-primary form-control">Login</button>
+
+            </div><br></form>
+            <div style="text-align:center;">
+              <a class="new" href="newadmin.html">Add a new admin</a>
+            </div></div>
+        
+    </div>
+</section></body> <script  type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-analytics.js";
+        import { getAuth,  signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js";
+      const firebaseConfig = {
+        apiKey: "AIzaSyA_a7AiaOF8Fdy_1qDckdsWJFp9UiqRol0",
+        authDomain: "covid-f1ac9.firebaseapp.com",
+        databaseURL: "https://covid-f1ac9-default-rtdb.firebaseio.com",
+        projectId: "covid-f1ac9",
+        storageBucket: "covid-f1ac9.appspot.com",
+        messagingSenderId: "480494790086",
+        appId: "1:480494790086:web:bdba315915c2436de8fec7",
+        measurementId: "G-MMH7JNS3ZD"
+         
+        }; const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth();
+        console.log(app);
+    //----- Login code start	  
+  document.getElementById("login").addEventListener("click", function() {
+      var email =  document.getElementById("login_email").value;
+      var password = document.getElementById("login_password").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in 
+        const user = userCredential.user;
+        console.log(user);
+        var targetUrl = "add.html";
+        
+    
+    // Redirect the user
+    window.location.href = targetUrl;
+        
+        // ...
+      })
+      .catch((error) => {
+        
+        alert("Invalid email and password");
+      });		  		  
+  });
+  //----- End
+  </script></html>
